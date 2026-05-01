@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="description" content="お金の安心ゾーン完成版 - 上限+下限+自由に使えるお金。コンサルクライアント限定の本格設計ツール。">
+<title>お金の安心ゾーン 完成版 | カケサポ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy: #1A4D8C;
+  --navy-dark: #0B2C52;
+  --navy-soft: #E8F0F7;
+  --gold: #F5C518;
+  --gold-soft: #FFF4C8;
+  --off-white: #F8F9FA;
+  --white: #FFFFFF;
+  --gray-mute: #E8EBEF;
+  --gray-light: #B0B7C0;
+  --text: #2D3748;
+  --text-soft: #4A5568;
+  --success: #2F855A;
+  --success-soft: #E6F4EC;
+  --warning: #DD6B20;
+  --font-sans: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  --max-width: 760px;
+  --radius: 12px;
+  --shadow-card: 0 2px 12px rgba(26, 77, 140, 0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans); font-size: 16px; line-height: 1.7;
+  color: var(--text); background: var(--off-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ヒーロー */
+.hero {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+  color: var(--white); padding: 56px 24px 48px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0;
+  height: 4px; background: var(--gold);
+}
+.client-badge {
+  display: inline-block;
+  background: var(--gold); color: var(--navy-dark);
+  font-size: 11px; font-weight: 700; padding: 4px 12px;
+  border-radius: 999px; letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+.hero-inner { max-width: var(--max-width); margin: 0 auto; }
+.hero h1 {
+  font-weight: 900; font-size: clamp(26px, 5vw, 36px);
+  line-height: 1.45; margin-bottom: 14px; letter-spacing: 0.02em;
+}
+.hero h1 .highlight { color: var(--gold); }
+.hero p { font-size: 14px; line-height: 1.85; opacity: 0.92; }
+
+main {
+  max-width: var(--max-width); margin: -28px auto 0;
+  padding: 0 24px 80px; position: relative; z-index: 1;
+}
+
+/* カード */
+.card {
+  background: var(--white); border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 28px 24px; margin-bottom: 20px;
+}
+.card-header {
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-mute);
+}
+.card-eyebrow {
+  font-size: 12px; letter-spacing: 0.12em;
+  color: var(--navy); font-weight: 700; margin-bottom: 8px;
+}
+.card-title {
+  font-size: 20px; font-weight: 700;
+  color: var(--navy-dark); line-height: 1.5;
+}
+.card-description {
+  font-size: 13px; color: var(--text-soft);
+  margin-top: 10px; line-height: 1.75;
+}
+
+/* フォーム共通 */
+.form-stack { display: grid; gap: 18px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; }
+.field-label {
+  font-size: 12px; font-weight: 500;
+  color: var(--navy-dark); margin-bottom: 6px;
+}
+.field-hint {
+  font-size: 12px; font-weight: 400;
+  color: var(--text-soft); margin-top: 6px; line-height: 1.7;
+}
+.field-input-wrap { position: relative; display: flex; align-items: center; }
+.field input[type="number"] {
+  width: 100%; padding: 11px 44px 11px 12px;
+  font-size: 15px; font-weight: 700;
+  color: var(--navy-dark); background: var(--white);
+  border: 1px solid var(--gray-light); border-radius: 7px;
+  text-align: right;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.field input[type="number"]::-webkit-outer-spin-button,
+.field input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.field input[type="number"]:focus {
+  outline: none; border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(26, 77, 140, 0.1);
+}
+.field-suffix {
+  position: absolute; right: 12px; font-size: 12px;
+  color: var(--text-soft); pointer-events: none; font-weight: 500;
+}
+
+/* 下限内訳テーブル */
+.expense-table {
+  display: grid; gap: 8px;
+}
+.expense-row {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 12px;
+  padding: 10px 12px; background: var(--off-white);
+  border-radius: 6px;
+}
+.expense-label {
+  font-size: 13px; font-weight: 500; color: var(--navy-dark);
+}
+.expense-input { display: flex; align-items: center; gap: 6px; }
+.expense-input input {
+  width: 80px; padding: 8px 8px; font-size: 14px;
+  font-weight: 700; color: var(--navy-dark);
+  border: 1px solid var(--gray-light); border-radius: 6px;
+  text-align: right;
+}
+.expense-input span { font-size: 12px; color: var(--text-soft); }
+
+/* CTAボタン */
+.cta-primary {
+  display: block; width: 100%;
+  padding: 18px 24px;
+  background: var(--gold); color: var(--navy-dark);
+  font-size: 16px; font-weight: 700; letter-spacing: 0.05em;
+  border: none; border-radius: var(--radius);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(245, 197, 24, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-align: center;
+}
+.cta-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(245, 197, 24, 0.4); }
+
+/* 結果 */
+#results { display: none; margin-top: 40px; }
+#results.show { display: block; animation: fadeIn 0.6s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 安心ゾーン三本柱 */
+.zone-summary {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+  color: var(--white); padding: 32px 28px;
+  border-radius: var(--radius); margin-bottom: 20px;
+  position: relative; overflow: hidden;
+}
+.zone-summary::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0;
+  height: 4px; background: var(--gold);
+}
+.zone-eyebrow {
+  font-size: 11px; letter-spacing: 0.2em;
+  color: var(--gold); font-weight: 700; margin-bottom: 16px;
+  text-align: center;
+}
+.zone-pillars {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px; margin-bottom: 16px;
+}
+.zone-pillar {
+  background: rgba(255,255,255,0.08); border-radius: 8px;
+  padding: 18px 14px; text-align: center;
+}
+.zone-pillar-label {
+  font-size: 11px; font-weight: 700; opacity: 0.85;
+  margin-bottom: 6px; letter-spacing: 0.05em;
+}
+.zone-pillar-value {
+  font-size: 24px; font-weight: 900;
+  line-height: 1.1; color: var(--white);
+}
+.zone-pillar-unit {
+  font-size: 13px; opacity: 0.85;
+  display: block; margin-top: 4px;
+}
+.zone-pillar.freedom .zone-pillar-value { color: var(--gold); font-size: 30px; }
+.zone-pillar.freedom .zone-pillar-label { color: var(--gold); }
+.zone-explain {
+  font-size: 13px; opacity: 0.92;
+  line-height: 1.85; padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+.zone-explain strong { color: var(--gold); }
+
+/* 自由に使えるお金の月額カード */
+.freedom-card {
+  background: var(--gold-soft); border-radius: var(--radius);
+  padding: 28px 24px; text-align: center;
+  margin-bottom: 20px; border: 2px solid var(--gold);
+}
+.freedom-eyebrow {
+  font-size: 12px; letter-spacing: 0.1em;
+  color: var(--navy); font-weight: 700; margin-bottom: 8px;
+}
+.freedom-amount {
+  font-size: clamp(40px, 10vw, 56px);
+  font-weight: 900; color: var(--navy-dark);
+  line-height: 1; letter-spacing: -0.02em;
+}
+.freedom-amount-unit {
+  font-size: 18px; font-weight: 700;
+  color: var(--navy-dark); margin-left: 4px;
+}
+.freedom-yearly {
+  font-size: 14px; color: var(--text);
+  margin-top: 10px;
+}
+.freedom-yearly strong { color: var(--navy); font-weight: 700; }
+
+/* 配分提案 */
+.allocation-card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 24px; margin-bottom: 20px;
+  box-shadow: var(--shadow-card);
+}
+.allocation-title {
+  font-size: 13px; font-weight: 700;
+  color: var(--navy); letter-spacing: 0.05em; margin-bottom: 12px;
+}
+.allocation-rows {
+  display: grid; gap: 10px;
+}
+.allocation-row {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 10px; align-items: center;
+  padding: 10px 12px; background: var(--off-white); border-radius: 6px;
+}
+.allocation-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--navy); color: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 900;
+}
+.allocation-row.upper .allocation-icon { background: var(--gold); color: var(--navy-dark); }
+.allocation-row.lower .allocation-icon { background: var(--success); }
+.allocation-row.freedom .allocation-icon { background: var(--navy-dark); }
+.allocation-name {
+  font-size: 14px; font-weight: 500; color: var(--navy-dark);
+}
+.allocation-name-sub {
+  font-size: 11px; color: var(--text-soft); display: block; margin-top: 2px;
+}
+.allocation-value {
+  font-size: 16px; font-weight: 700; color: var(--navy-dark);
+  white-space: nowrap;
+}
+
+/* メッセージ */
+.msg-card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 24px; box-shadow: var(--shadow-card);
+  margin-bottom: 20px; border-left: 4px solid var(--gold);
+}
+.msg-eyebrow {
+  font-size: 12px; letter-spacing: 0.12em;
+  color: var(--navy); font-weight: 700; margin-bottom: 10px;
+}
+.msg-title {
+  font-size: 17px; font-weight: 700;
+  color: var(--navy-dark); margin-bottom: 12px; line-height: 1.55;
+}
+.msg-body { font-size: 14px; line-height: 1.85; color: var(--text); }
+.msg-body strong { color: var(--navy); font-weight: 700; }
+
+@media (max-width: 600px) {
+  .form-row-2 { grid-template-columns: 1fr; }
+  .hero { padding: 48px 20px 40px; }
+  .card { padding: 24px 18px; }
+  .zone-pillars { grid-template-columns: 1fr; }
+  .zone-pillar.freedom .zone-pillar-value { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="client-badge">CLIENT EXCLUSIVE</span>
+    <h1>『お金の安心ゾーン』<br><span class="highlight">完成版</span></h1>
+    <p>
+      上限・下限・<strong>自由に使えるお金</strong>を金額で確定。<br>
+      90日プログラムで「不安だけで貯め続ける」状態を卒業します。
+    </p>
+  </div>
+</section>
+
+<main>
+  <!-- 共通情報 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-eyebrow">STEP 1 / 世帯情報</div>
+      <h2 class="card-title">夫婦の現状</h2>
+    </div>
+    <div class="form-stack">
+      <div class="form-row-2">
+        <div class="field">
+          <label class="field-label" for="ageH">本人の年齢</label>
+          <div class="field-input-wrap">
+            <input type="number" id="ageH" min="20" max="65" value="35">
+            <span class="field-suffix">歳</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="incomeH">本人の手取り月収</label>
+          <div class="field-input-wrap">
+            <input type="number" id="incomeH" min="0" max="200" value="28">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="field">
+          <label class="field-label" for="ageW">配偶者の年齢</label>
+          <div class="field-input-wrap">
+            <input type="number" id="ageW" min="0" max="65" value="33">
+            <span class="field-suffix">歳</span>
+          </div>
+          <span class="field-hint">単身の場合は0</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="incomeW">配偶者の手取り月収</label>
+          <div class="field-input-wrap">
+            <input type="number" id="incomeW" min="0" max="200" value="18">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 上限関連 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-eyebrow">STEP 2 / 上限(これ以上は貯めなくていい金額)</div>
+      <h2 class="card-title">将来必要な総額と現状資産</h2>
+      <p class="card-description">
+        老後・教育費に備えるため、リタイア年齢までに月いくら積み立てればいいかを逆算します。
+      </p>
+    </div>
+    <div class="form-stack">
+      <div class="form-row-2">
+        <div class="field">
+          <label class="field-label" for="retireAge">リタイア希望年齢</label>
+          <div class="field-input-wrap">
+            <input type="number" id="retireAge" min="55" max="75" value="65">
+            <span class="field-suffix">歳</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="livingCost">老後の希望月生活費</label>
+          <div class="field-input-wrap">
+            <input type="number" id="livingCost" min="15" max="50" value="25">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="field">
+          <label class="field-label" for="totalAssets">運用中の資産(NISA・特定口座)</label>
+          <div class="field-input-wrap">
+            <input type="number" id="totalAssets" min="0" max="99999" value="300">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="iDecoAssets">iDeCo現在残高</label>
+          <div class="field-input-wrap">
+            <input type="number" id="iDecoAssets" min="0" max="99999" value="0">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="field">
+          <label class="field-label" for="nonInvestedCash">運用しない手元資金</label>
+          <div class="field-input-wrap">
+            <input type="number" id="nonInvestedCash" min="0" max="99999" value="100">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="severance">退職金見込み(任意)</label>
+          <div class="field-input-wrap">
+            <input type="number" id="severance" min="0" max="9999" value="0">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="field">
+          <label class="field-label" for="kidGoal">子の大学費用(1人あたり)</label>
+          <div class="field-input-wrap">
+            <input type="number" id="kidGoal" min="0" max="9999" value="500">
+            <span class="field-suffix">万円</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="kidsCount">子の人数</label>
+          <div class="field-input-wrap">
+            <input type="number" id="kidsCount" min="0" max="5" value="2">
+            <span class="field-suffix">人</span>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="kidsAvgAge">子の平均年齢(複数いる場合)</label>
+        <div class="field-input-wrap">
+          <input type="number" id="kidsAvgAge" min="0" max="22" value="6">
+          <span class="field-suffix">歳</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 下限関連 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-eyebrow">STEP 3 / 下限(これだけあれば暮らせる金額)</div>
+      <h2 class="card-title">最低生活費の積み上げ</h2>
+      <p class="card-description">
+        家計改善後・固定費見直し後の<strong>削れない月支出</strong>を積み上げます。これが「下限(安心ライン)」=失業しても生活が崩壊しない最低ライン。
+      </p>
+    </div>
+    <div class="expense-table">
+      <div class="expense-row">
+        <span class="expense-label">住居費(家賃 or ローン+管理費)</span>
+        <div class="expense-input"><input type="number" id="exHousing" min="0" max="50" value="9"><span>万円</span></div>
+      </div>
+      <div class="expense-row">
+        <span class="expense-label">食費(必須最低限)</span>
+        <div class="expense-input"><input type="number" id="exFood" min="0" max="20" value="5"><span>万円</span></div>
+      </div>
+      <div class="expense-row">
+        <span class="expense-label">水道光熱費</span>
+        <div class="expense-input"><input type="number" id="exUtility" min="0" max="10" value="2"><span>万円</span></div>
+      </div>
+      <div class="expense-row">
+        <span class="expense-label">通信費(削減後)</span>
+        <div class="expense-input"><input type="number" id="exComm" min="0" max="5" value="1"><span>万円</span></div>
+      </div>
+      <div class="expense-row">
+        <span class="expense-label">保険(必要最低限)</span>
+        <div class="expense-input"><input type="number" id="exIns" min="0" max="10" value="1.5"><span>万円</span></div>
+      </div>
+      <div class="expense-row">
+        <span class="expense-label">日用品・医療</span>
+        <div class="expense-input"><input type="number" id="exDaily" min="0" max="10" value="2"><span>万円</span></div>
+      </div>
+      <div class="expense-row">
+        <span class="expense-label">子の必須教育費(月割)</span>
+        <div class="expense-input"><input type="number" id="exKidEdu" min="0" max="20" value="3"><span>万円</span></div>
+      </div>
+      <div class="expense-row">
+        <span class="expense-label">交通費・その他必須</span>
+        <div class="expense-input"><input type="number" id="exOther" min="0" max="10" value="1.5"><span>万円</span></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="cta-primary" id="calcBtn" type="button">安心ゾーンを完成させる</button>
+
+  <!-- 結果 -->
+  <div id="results">
+    <!-- 安心ゾーン3本柱サマリー -->
+    <div class="zone-summary">
+      <div class="zone-eyebrow">『お金の安心ゾーン』完成図</div>
+      <div class="zone-pillars">
+        <div class="zone-pillar">
+          <div class="zone-pillar-label">上限<br>(積立)</div>
+          <div class="zone-pillar-value" id="upperVal">0</div>
+          <span class="zone-pillar-unit">万円/月</span>
+        </div>
+        <div class="zone-pillar freedom">
+          <div class="zone-pillar-label">⭐ 自由に使えるお金</div>
+          <div class="zone-pillar-value" id="freedomVal">0</div>
+          <span class="zone-pillar-unit">万円/月</span>
+        </div>
+        <div class="zone-pillar">
+          <div class="zone-pillar-label">下限<br>(最低生活費)</div>
+          <div class="zone-pillar-value" id="lowerVal">0</div>
+          <span class="zone-pillar-unit">万円/月</span>
+        </div>
+      </div>
+      <div class="zone-explain">
+        世帯手取り <strong id="incomeRecap">0万円</strong> = 上限積立 + 自由に使えるお金 + 下限<br>
+        ⭐ <strong>自由に使えるお金</strong>=「気分よく使っていい範囲」=今を楽しんでいいお金
+      </div>
+    </div>
+
+    <!-- 自由に使えるお金カード(年間合計) -->
+    <div class="freedom-card">
+      <div class="freedom-eyebrow">年間ベースで見ると</div>
+      <div>
+        <span class="freedom-amount" id="freedomYearly">0</span><span class="freedom-amount-unit">万円</span>
+      </div>
+      <div class="freedom-yearly">
+        が <strong>1年間に自由に使ってOKなお金</strong>。<br>
+        旅行・外食・趣味・家族の楽しみに気分よく使ってください。
+      </div>
+    </div>
+
+    <!-- 月の手取り配分提案 -->
+    <div class="allocation-card">
+      <div class="allocation-title">毎月の手取り <span id="incomeMonthly">0</span>万円の理想配分</div>
+      <div class="allocation-rows">
+        <div class="allocation-row upper">
+          <div class="allocation-icon">↑</div>
+          <div>
+            <div class="allocation-name">上限への積立</div>
+            <span class="allocation-name-sub">老後・教育費の準備(NISA・iDeCo・特定口座)</span>
+          </div>
+          <div class="allocation-value"><span id="allocUpper">0</span>万円</div>
+        </div>
+        <div class="allocation-row freedom">
+          <div class="allocation-icon">★</div>
+          <div>
+            <div class="allocation-name">自由に使えるお金</div>
+            <span class="allocation-name-sub">罪悪感ゼロで使える楽しみのお金</span>
+          </div>
+          <div class="allocation-value"><span id="allocFreedom">0</span>万円</div>
+        </div>
+        <div class="allocation-row lower">
+          <div class="allocation-icon">─</div>
+          <div>
+            <div class="allocation-name">下限(最低生活費)</div>
+            <span class="allocation-name-sub">削れない固定支出+変動支出</span>
+          </div>
+          <div class="allocation-value"><span id="allocLower">0</span>万円</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メッセージ -->
+    <div class="msg-card">
+      <div class="msg-eyebrow">FPゆうきからのコメント</div>
+      <div class="msg-title" id="msgTitle">安心ゾーンが完成しました</div>
+      <div class="msg-body" id="msgBody"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const RATE = 4; // 実質4%(クライアント版・カケサポ標準)
+const mr = RATE / 100 / 12;
+const TARGET_END = 100;
+const IDECO_UNLOCK = 60;
+const PENSION_START = 65;
+const EDU_TARGET = 18;
+
+function pen(income, occ) {
+  // クライアント版は会社員想定で簡略化(コンサル中に詳細化)
+  return 6.8 + (income * 1.25) * 5.481 / 1000 * 456 / 12;
+}
+
+function calc() {
+  const ageH = +document.getElementById('ageH').value || 35;
+  const incomeH = +document.getElementById('incomeH').value || 0;
+  const ageW = +document.getElementById('ageW').value || 0;
+  const incomeW = +document.getElementById('incomeW').value || 0;
+  const hasSpouse = ageW > 0;
+
+  const retireAge = +document.getElementById('retireAge').value || 65;
+  const livingCost = +document.getElementById('livingCost').value || 25;
+  const totalAssets = +document.getElementById('totalAssets').value || 0;
+  const iDecoAssets = +document.getElementById('iDecoAssets').value || 0;
+  const nonInvestedCash = +document.getElementById('nonInvestedCash').value || 0;
+  const severance = +document.getElementById('severance').value || 0;
+  const kidGoal = +document.getElementById('kidGoal').value || 0;
+  const kidsCount = +document.getElementById('kidsCount').value || 0;
+  const kidsAvgAge = +document.getElementById('kidsAvgAge').value || 0;
+
+  const householdIncome = incomeH + (hasSpouse ? incomeW : 0);
+  const householdPension = pen(incomeH) + (hasSpouse ? pen(incomeW) : 0);
+  const olderAge = hasSpouse ? Math.max(ageH, ageW) : ageH;
+  const monthsToRetire = Math.max(12, (retireAge - olderAge) * 12);
+  const monthsAfterRetire = (TARGET_END - retireAge) * 12;
+  const iDecoUnlockMonth = Math.max(0, (IDECO_UNLOCK - olderAge) * 12);
+  const drawBefore = livingCost * 10000;
+  const drawAfter = Math.max(0, livingCost - householdPension) * 10000;
+  const DEFENSE = householdIncome * 6 * 10000;
+
+  // 教育費イベント
+  const events = {};
+  for (let i = 0; i < kidsCount; i++) {
+    const kAge = Math.max(0, kidsAvgAge - i + (kidsCount - 1) / 2);
+    const bM = Math.max(1, (EDU_TARGET - kAge) * 12);
+    for (let y = 0; y < 4; y++) {
+      const m = Math.round(bM + y * 12);
+      events[m] = (events[m] || 0) + (kidGoal / 4) * 10000;
+    }
+  }
+
+  // 上限の月額積立(simulateUnified)
+  function sim(M) {
+    let inv = totalAssets * 10000;
+    let ide = iDecoAssets * 10000;
+    let cs = nonInvestedCash * 10000;
+    function dd(a) { if (cs >= a) { cs -= a; return true; } a -= cs; cs = 0; if (inv >= a) { inv -= a; return true; } return false; }
+    for (let m = 1; m <= monthsToRetire; m++) {
+      inv *= 1 + mr; ide *= 1 + mr; inv += M * 10000;
+      if (m === iDecoUnlockMonth && ide > 0) { inv += ide; ide = 0; }
+      if (events[m]) {
+        if (!dd(events[m])) return false;
+        if (inv + ide + cs < DEFENSE) return false;
+      }
+    }
+    if (ide > 0) inv += ide;
+    if (severance > 0) inv += severance * 10000;
+    for (let m = 1; m <= monthsAfterRetire; m++) {
+      const ageNow = retireAge + m / 12;
+      inv *= 1 + mr;
+      const draw = ageNow < PENSION_START ? drawBefore : drawAfter;
+      if (draw > 0 && !dd(draw)) return false;
+    }
+    return true;
+  }
+
+  let lo = 0, hi = 200;
+  if (!sim(hi)) hi = 200;
+  else {
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (sim(mid)) hi = mid;
+      else lo = mid;
+    }
+  }
+  const upperMonthly = hi;
+
+  // 下限の積み上げ
+  const ex = id => +document.getElementById(id).value || 0;
+  const lowerMonthly = ex('exHousing') + ex('exFood') + ex('exUtility') +
+                       ex('exComm') + ex('exIns') + ex('exDaily') +
+                       ex('exKidEdu') + ex('exOther');
+
+  // 自由に使えるお金 = 世帯手取り - 上限積立 - 下限
+  const freedomMonthly = Math.max(0, householdIncome - upperMonthly - lowerMonthly);
+  const freedomYearly = freedomMonthly * 12;
+
+  // 表示
+  document.getElementById('upperVal').textContent = upperMonthly.toFixed(1);
+  document.getElementById('lowerVal').textContent = lowerMonthly.toFixed(1);
+  document.getElementById('freedomVal').textContent = freedomMonthly.toFixed(1);
+  document.getElementById('freedomYearly').textContent = Math.round(freedomYearly).toLocaleString('ja-JP');
+  document.getElementById('incomeRecap').textContent = `${householdIncome}万円`;
+  document.getElementById('incomeMonthly').textContent = householdIncome;
+  document.getElementById('allocUpper').textContent = upperMonthly.toFixed(1);
+  document.getElementById('allocLower').textContent = lowerMonthly.toFixed(1);
+  document.getElementById('allocFreedom').textContent = freedomMonthly.toFixed(1);
+
+  // メッセージ
+  let title, body;
+  const overflow = householdIncome - upperMonthly - lowerMonthly;
+  if (overflow < 0) {
+    title = '現状では支出が収入を超えています';
+    body = `下限(月${lowerMonthly.toFixed(1)}万)+ 上限積立(月${upperMonthly.toFixed(1)}万)が世帯手取り月${householdIncome}万を超えている状態。<br><br>解決ルートは2つ:<br>① <strong>下限を下げる</strong>(固定費見直しで月${(-overflow).toFixed(1)}万円以上削減)<br>② <strong>上限を下げる</strong>(目標金額を見直す or リタイア年齢を後ろ倒し)<br><br>無料相談会では、まず固定費の棚卸しから一緒に進めていきます。`;
+  } else if (freedomMonthly >= 5) {
+    title = `月${freedomMonthly.toFixed(1)}万円・年${Math.round(freedomYearly).toLocaleString('ja-JP')}万円が「自由に使えるお金」`;
+    body = `これだけあれば<strong>家族旅行・外食・趣味・自分への投資</strong>に十分使える範囲。<br>「貯めなきゃ」の不安から解放され、<strong>今を楽しみながら未来に備える</strong>状態が完成しました。<br><br>これを90日プログラムで実装に落とし込み、家計の仕組み化(週1・5分の見るだけ家計簿)で維持していきます。`;
+  } else if (freedomMonthly >= 2) {
+    title = `月${freedomMonthly.toFixed(1)}万円が「自由に使えるお金」`;
+    body = `今すぐの楽しみには十分・年間${Math.round(freedomYearly).toLocaleString('ja-JP')}万円のお金を罪悪感ゼロで使える状態。<br><br>固定費をさらに見直すと、月の自由に使えるお金が増えていきます。90日プログラムで「使い方の判断軸」(価値観マップ)も整えて、家族で気分よく使える設計に仕上げます。`;
+  } else {
+    title = `自由に使えるお金は月${freedomMonthly.toFixed(1)}万円・余裕は薄い状態`;
+    body = `現状の家計だと、上限積立を確保した後の自由なお金が少ない。<br>解決ルート: <strong>固定費削減</strong>(通信・保険・サブスク見直しで月3-5万円捻出)or <strong>上限の見直し</strong>(過剰な目標金額の修正)。<br><br>90日プログラムで、3つの根本原因(価値観・仕組み・上限)を順番に整えて、月5万円以上の自由に使えるお金を目指します。`;
+  }
+  document.getElementById('msgTitle').textContent = title;
+  document.getElementById('msgBody').innerHTML = body;
+
+  document.getElementById('results').classList.add('show');
+  setTimeout(() => document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+document.getElementById('calcBtn').addEventListener('click', calc);
+document.addEventListener('keypress', e => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); calc(); }
+});
+</script>
+
+</body>
+</html>
